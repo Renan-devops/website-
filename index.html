@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Site simples + Chatbot</title>
+
+  <style>
+    :root{
+      --bg:#0b0f19;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --card:#111827;
+      --border:rgba(255,255,255,.10);
+      --brand1:#60a5fa;
+      --brand2:#22c55e;
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 520px at 12% 12%, rgba(96,165,250,.18), transparent 60%),
+        radial-gradient(820px 470px at 90% 20%, rgba(34,197,94,.16), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+
+    header{
+      position:sticky; top:0; z-index:10;
+      background: rgba(11,15,25,.65);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .container{max-width:980px;margin:0 auto;padding:0 16px;}
+    .top{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 0;
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900}
+    .logo{
+      width:36px;height:36px;border-radius:12px;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      display:grid;place-items:center;color:#0b0f19;font-weight:900;
+      box-shadow: var(--shadow);
+    }
+    .nav{display:none;gap:16px;color:var(--muted);font-size:14px}
+    .nav a:hover{color:var(--text)}
+    @media(min-width:820px){.nav{display:flex}}
+
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:12px 14px;border-radius:14px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:800;
+      transition: transform .12s ease, filter .12s ease;
+    }
+    .btn:hover{transform: translateY(-1px); filter: brightness(1.08);}
+    .btn.primary{
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      color:#0b0f19;
+      border-color: transparent;
+    }
+
+    main{padding:52px 0 28px}
+    .hero{
+      display:grid;gap:16px;align-items:center;
+      grid-template-columns: 1fr;
+    }
+    @media(min-width:920px){.hero{grid-template-columns:1.15fr .85fr;gap:18px}}
+
+    h1{margin:0;font-size:34px;line-height:1.1;letter-spacing:-.02em}
+    @media(min-width:920px){h1{font-size:48px}}
+    .lead{margin:12px 0 0;color:var(--muted);font-size:16px}
+    .cta{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+
+    .card{
+      background: rgba(17,24,39,.75);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px;
+      box-shadow: var(--shadow);
+    }
+    .kpis{display:grid;gap:10px;margin-top:12px}
+    .kpi{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:12px;border-radius:16px;
+      border:1px solid var(--border);
+      background: rgba(11,15,25,.45);
+    }
+    .kpi .l{display:flex;align-items:center;gap:10px}
+    .ico{
+      width:38px;height:38px;border-radius:14px;
+      background: rgba(255,255,255,.06);
+      display:grid;place-items:center;font-weight:900;
+    }
+    .kpi .t{font-weight:900;font-size:14px}
+    .kpi .s{margin-top:2px;font-size:12px;color:var(--muted)}
+    .kpi .v{font-weight:900;font-size:18px}
+
+    .section{padding:22px 0}
+    .grid3{display:grid;gap:12px}
+    @media(min-width:920px){.grid3{grid-template-columns:repeat(3,1fr)}}
+    .item{background: rgba(17,24,39,.55);border:1px solid var(--border);border-radius:16px;padding:14px}
+    .item h3{margin:8px 0 0;font-size:15px}
+    .item p{margin:8px 0 0;color:var(--muted);font-size:14px}
+
+    footer{
+      border-top:1px solid var(--border);
+      padding:18px 0;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:18px;
+    }
+
+    /* ===== Chatbot ===== */
+    .chat-fab{
+      position: fixed; right: 16px; bottom: 16px;
+      width: 58px; height: 58px; border-radius: 999px;
+      border:1px solid var(--border);
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      color:#0b0f19;
+      font-size:22px;
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      z-index: 99999;
+      box-shadow: var(--shadow);
+    }
+    .chat-overlay{
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      z-index: 99998;
+    }
+    .chat-overlay.open{display:block}
+
+    .chat-modal{
+      position: fixed;
+      right: 16px;
+      bottom: 86px;
+      width: min(380px, calc(100vw - 24px));
+      height: min(520px, calc(100vh - 140px));
+      background: rgba(17,24,39,.96);
+      border:1px solid var(--border);
+      border-radius: 18px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      display:flex;
+      flex-direction:column;
+      z-index: 99999;
+      backdrop-filter: blur(10px);
+    }
+    .chat-header{
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background: rgba(11,15,25,.35);
+    }
+    .chat-header .t{font-weight:900}
+    .chat-close{
+      width: 34px; height: 34px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:900;
+    }
+    .chat-body{
+      flex:1;
+      padding: 12px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      background: rgba(11,15,25,.20);
+    }
+    .msg{
+      max-width: 85%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .msg.me{align-self:flex-end;background: rgba(34,197,94,.18)}
+    .msg.bot{align-self:flex-start;background: rgba(96,165,250,.14)}
+    .chat-input{
+      display:flex;
+      gap:10px;
+      padding: 10px;
+      border-top: 1px solid var(--border);
+      background: rgba(11,15,25,.35);
+    }
+    .chat-input input{
+      flex:1;
+      padding: 12px;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline:none;
+    }
+    .chat-input button{
+      padding: 12px 14px;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:900;
+    }
+    .chat-input button:hover{filter: brightness(1.08)}
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container">
+      <div class="top">
+        <div class="brand">
+          <div class="logo">AI</div>
+          <div>
+            <div style="line-height:1.1">Automação & IA</div>
+            <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:2px">
+              Site simples com chatbot
+            </div>
+          </div>
+        </div>
+
+        <nav class="nav" aria-label="Navegação">
+          <a href="#beneficios">Benefícios</a>
+          <a href="#contato">Contato</a>
+        </nav>
+
+        <button class="btn primary" id="openChatHeader" type="button">Abrir chat →</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="hero">
+        <div>
+          <h1>Atendimento automatizado com integração via webhook.</h1>
+          <p class="lead">
+            Este é um modelo simples. O ícone 💬 abre um chat que envia mensagens para seu n8n e mostra a resposta.
+          </p>
+          <div class="cta">
+            <button class="btn primary" id="openChatHero" type="button">Testar chatbot →</button>
+            <a class="btn" href="#beneficios">Ver benefícios</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-weight:900">Resumo rápido</div>
+          <div style="margin-top:6px;color:var(--muted);font-size:14px">Exemplo de ganhos com automação</div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="l">
+                <div class="ico">⚡</div>
+                <div>
+                  <div class="t">Resposta</div>
+                  <div class="s">Mais rápida</div>
+                </div>
+              </div>
+              <div class="v">-40%</div>
+            </div>
+
+            <div class="kpi">
+              <div class="l">
+                <div class="ico">📈</div>
+                <div>
+                  <div class="t">Conversão</div>
+                  <div class="s">Mais leads</div>
+                </div>
+              </div>
+              <div class="v">+20%</div>
+            </div>
+
+            <div class="kpi">
+              <div class="l">
+                <div class="ico">🔗</div>
+                <div>
+                  <div class="t">Integrações</div>
+                  <div class="s">Menos retrabalho</div>
+                </div>
+              </div>
+              <div class="v">+1</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="beneficios">
+        <h2 style="margin:0;font-size:22px">Benefícios</h2>
+        <p style="margin:8px 0 0;color:var(--muted)">Uma base simples para você adaptar e evoluir.</p>
+
+        <div class="grid3" style="margin-top:14px">
+          <div class="item">
+            <div class="ico">🤖</div>
+            <h3>Chat integrado</h3>
+            <p>Envia mensagem para o webhook e exibe a resposta no chat.</p>
+          </div>
+          <div class="item">
+            <div class="ico">🕒</div>
+            <h3>24/7</h3>
+            <p>Triagem e captação de leads sem depender de horário.</p>
+          </div>
+          <div class="item">
+            <div class="ico">🧩</div>
+            <h3>Automação</h3>
+            <p>Conecte CRM, planilhas, pagamentos e rotinas internas.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="contato">
+        <div class="card">
+          <div style="font-weight:900">Contato</div>
+          <p style="margin:8px 0 0;color:var(--muted);font-size:14px">
+            Clique no botão abaixo ou use o ícone 💬 no canto.
+          </p>
+          <div class="cta" style="margin-top:12px">
+            <button class="btn primary" id="openChatContact" type="button">Falar no chat →</button>
+            <a class="btn" href="#beneficios">Voltar</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      © <span id="year"></span> • Site simples + Chatbot (n8n webhook)
+    </div>
+  </footer>
+
+  <!-- Chat -->
+  <button class="chat-fab" id="chatFab" aria-label="Abrir chat" title="Abrir chat">💬</button>
+
+  <div class="chat-overlay" id="chatOverlay" aria-hidden="true">
+    <div class="chat-modal" role="dialog" aria-modal="true" aria-label="Chatbot">
+      <div class="chat-header">
+        <div>
+          <div class="t">Chatbot</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Webhook: /webhook/chatbot</div>
+        </div>
+        <button class="chat-close" id="chatClose" aria-label="Fechar chat">✕</button>
+      </div>
+
+      <div class="chat-body" id="chatBody"></div>
+
+      <div class="chat-input">
+        <input id="chatInput" type="text" placeholder="Digite sua mensagem..." autocomplete="off" />
+        <button id="chatSend" type="button">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const WEBHOOK_URL = "https://evolution-n8n.nwtczg.easypanel.host/webhook/chatbot";
+
+    const $ = (s) => document.querySelector(s);
+    $("#year").textContent = new Date().getFullYear();
+
+    const chatOverlay = $("#chatOverlay");
+    const chatBody = $("#chatBody");
+    const chatInput = $("#chatInput");
+
+    function addMsg(text, who){
+      const div = document.createElement("div");
+      div.className = "msg " + (who === "me" ? "me" : "bot");
+      div.textContent = text;
+      chatBody.appendChild(div);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    async function postToBot(message){
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ message })
+      });
+      const data = await res.json();
+      return data.reply ?? data.text ?? data.message ?? JSON.stringify(data);
+    }
+
+    async function sendMessage(){
+      const message = (chatInput.value || "").trim();
+      if(!message) return;
+
+      addMsg(message, "me");
+      chatInput.value = "";
+      chatInput.focus();
+
+      try{
+        const reply = await postToBot(message);
+        addMsg(reply, "bot");
+      }catch(e){
+        console.error(e);
+        addMsg("Erro ao chamar webhook. Verifique CORS e se o fluxo retorna JSON.", "bot");
+      }
+    }
+
+    function openChat(){
+      chatOverlay.classList.add("open");
+      chatOverlay.setAttribute("aria-hidden","false");
+      if(!chatBody.dataset.init){
+        chatBody.dataset.init = "1";
+        addMsg("Olá! Como posso ajudar?", "bot");
+      }
+      chatInput.focus();
+    }
+    function closeChat(){
+      chatOverlay.classList.remove("open");
+      chatOverlay.setAttribute("aria-hidden","true");
+    }
+
+    $("#chatFab").addEventListener("click", openChat);
+    $("#openChatHeader").addEventListener("click", openChat);
+    $("#openChatHero").addEventListener("click", openChat);
+    $("#openChatContact").addEventListener("click", openChat);
+
+    $("#chatClose").addEventListener("click", closeChat);
+    chatOverlay.addEventListener("click", (e)=>{ if(e.target === chatOverlay) closeChat(); });
+    window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeChat(); });
+
+    $("#chatSend").addEventListener("click", sendMessage);
+    chatInput.addEventListener("keydown", (e)=>{ if(e.key === "Enter") sendMessage(); });
+  </script>
+</body>
+</html>
